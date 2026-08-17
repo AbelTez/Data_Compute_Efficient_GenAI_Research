@@ -1,0 +1,63 @@
+{
+  "E1_curriculum_vs_random": {
+    "random_final_val_loss": 3.525536427131066,
+    "curriculum_final_val_loss": 3.521740748332097,
+    "threshold_used": "3.55",
+    "steps_random": 240,
+    "steps_curriculum": 180,
+    "speedup_pct": 25.0
+  },
+  "E2_lora_vs_full_finetune": {
+    "full_trainable_params": 82304,
+    "lora_trainable_params": 30336,
+    "param_reduction_pct": 63.1,
+    "full_final_val_loss": 3.521740748332097,
+    "lora_final_val_loss": 3.5934022756723256
+  },
+  "E3_distilled_vs_scratch": {
+    "teacher_val_loss": 3.522513536306528,
+    "scratch_final_val_loss": 3.521740748332097,
+    "distilled_final_val_loss": 3.5101267924675574,
+    "scratch_final_val_ppl": 33.843289867930835,
+    "distilled_final_val_ppl": 33.45250904122682
+  },
+  "E4_naive_vs_cgped": {
+    "naive_trainable_params": 82304,
+    "cgped_trainable_params": 30336,
+    "param_reduction_pct": 63.1,
+    "naive_final_val_loss": 3.525536427131066,
+    "cgped_final_val_loss": 3.571689569033109,
+    "cgped_closest_approach": {
+      "step": 590,
+      "train_loss": 1.7867622375488281,
+      "val_loss": 3.5282832292410045,
+      "val_ppl": 34.065434843024065
+    }
+  },
+  "E5_real_corpus_validation": {
+    "corpus": {
+      "name": "Tiny Shakespeare (public domain)",
+      "source": "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt",
+      "vocab_size": 68,
+      "n_train_examples": 1350,
+      "n_val_examples": 150,
+      "chunk_len_chars": 64
+    },
+    "naive_trainable_params": 80000,
+    "cgped_trainable_params": 28032,
+    "param_reduction_pct": 65.0,
+    "naive_final_val_loss": 2.071052980422974,
+    "cgped_final_val_loss": 2.3961989879608154,
+    "cgped_closest_approach": {
+      "step": 599,
+      "train_loss": 1.4159502983093262,
+      "val_loss": 2.2338282585144045,
+      "val_ppl": 9.335536605418207
+    },
+    "qualitative_samples": {
+      "prompt": "ROMEO:\n",
+      "naive": "ROMEO:\nAsworf I for four he thathear--\n\nFor 's and to le the the",
+      "cgped": "ROMEO:\nYoust\nHe, yo leme cound ple irer hen withalee irthe busey"
+    }
+  }
+}

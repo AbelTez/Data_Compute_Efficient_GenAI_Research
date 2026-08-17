@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Tooling / local config
+.claude/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.~lock.*#
+
+# Personal defense material — not part of the public research record
+DEFENSE_PREP.md
+CG-PED_Defense_Presentation.pptx
+
+# Paper generator kept local (the generated .docx is the public deliverable)
+cgped_experiments/experiments/make_paper.py

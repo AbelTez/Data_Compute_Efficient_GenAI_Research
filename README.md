@@ -1,67 +1,89 @@
-# CG-PED — Final Deliverable
+# CG-PED — final deliverable
 
-**Curriculum-Guided Parameter-Efficient Distillation: A Composed Methodology
-for Data- and Compute-Efficient Generative AI**
+**Do curriculum learning, LoRA, and knowledge distillation compose?**
+A factorial test of three efficiency techniques for training small generative
+language models — and why composing them does not help.
 
-This archive contains the complete Master's-level research deliverable for
-the "Data and Compute-Efficient Generative AI" research assignment:
+Research area: *Data and Compute-Efficient Generative AI*
+Author: Abel Tezare, Software Engineering Student, Addis Ababa University
 
 ```
-CG-PED_Research_Paper.docx      <- the full research paper (29 pages)
-cgped_experiments/              <- the complete, runnable experiment project
-    README.md                   <- project-specific documentation
-    requirements.txt
-    data_cache/                 <- the real public-domain text corpus used in E5
-    src/                        <- CG-PED implementation (data, model, LoRA, distillation, trainer)
-    experiments/                <- the 5 pilot studies (E1-E5) + figure/summary generators
-    results/                    <- JSON results from executed runs
-    figures/                    <- all plots and diagrams (also embedded in the paper)
+CG-PED_Research_Paper.docx    the paper
+cgped_experiments/            the runnable project
+    README.md                 project documentation
+    src/                      implementation
+    experiments/              the study, the figures, and this paper's generator
+    results/                  factorial.json, budget.json
+    figures/                  the five figures in the paper
+    data_cache/               the public-domain corpus (checksummed)
+    archive_v1/               the earlier five-study version, kept for provenance
 ```
+
+## The point of the research, in one paragraph
+
+Three techniques each cut the cost of training a generative model in a
+different way, and each is normally studied alone. A practitioner under a
+budget has no reason to pick just one — so the implicit assumption is that
+using all three compounds their benefits. This project tests that assumption
+with a full 2³ factorial: all eight combinations of curriculum, LoRA and
+distillation, three seeds each, at a fixed step budget, on a synthetic
+benchmark and on real text.
+
+**They compose almost perfectly** — the full combination lands within 0.0003
+and 0.0008 nats of what its three separate effects predict, about a tenth of
+the seed-to-seed spread. **And that is exactly why it loses.** Because nothing
+compounds, the composition is worth the plain sum of its parts, and only one
+of the three effects is large: LoRA costs +0.027 nats on synthetic data and
++0.278 on real text at from-scratch scale, 28× the seed noise. Distillation
+helps, but an order of magnitude less, and only in proportion to how much
+better the teacher is than the student. The curriculum never clears its own
+noise floor and changes sign between the two benchmarks. Added up, full CG-PED
+trails the naive baseline by 0.015 and 0.254 nats while saving 72–74% of
+trainable parameters.
+
+The contribution is the per-component price list that makes all of that
+readable, the additivity result that makes it predictive (if the components
+add, single-factor runs are enough to predict any combination), an
+equal-wall-clock comparison much less flattering than the equal-step one
+usually reported, and a silent implementation failure (paper, Section 8) that
+produced a complete but fictitious set of LoRA results before it was caught.
+The study ends by recommending a configuration that is *not* its own method.
 
 ## Start here
 
-1. **Read the paper first**: `CG-PED_Research_Paper.docx`. It is a complete,
-   honest, 29-page research paper — abstract, literature review grounded in
-   real, current publications, full CG-PED methodology, experimental setup,
-   results for all five pilot studies (including real generated text
-   samples), a mechanistic discussion of where the method does and doesn't
-   win, limitations, a concrete future-work plan, references, and
-   reproducibility appendices.
-2. **Reproduce the results**: `cd cgped_experiments && pip install -r
-   requirements.txt && python3 experiments/run_all.py`. This regenerates
-   every number and figure in the paper from scratch in about 6–8 minutes on
-   a single CPU core — no GPU needed. The real text corpus used in E5 is
-   already included in `data_cache/`, and will also be re-downloaded
-   automatically if missing (from a public, pinned GitHub URL).
-3. **Read `cgped_experiments/README.md`** for the full project structure, an
-   explanation of what each pilot study measures, and an explicit "honest
-   scope statement" about what this proof-of-concept does and does not
-   demonstrate.
+1. **Read the paper.** The Summary table on page 1 is the entire result. If
+   you read nothing else, read that. After it: the question is stated in
+   Section 1, the evidence is Tables 2 and 3 with Figure 3, and Section 6
+   explains the mechanism behind each number.
+2. **Check it yourself.** `cd cgped_experiments && pip install -r
+   requirements.txt && python3 experiments/verify.py` runs the five pipeline
+   self-checks in about two seconds without training anything.
+3. **Reproduce it.** `python3 experiments/run_all.py` regenerates every number
+   and figure from scratch in 35–45 minutes on one CPU core. No GPU, no model
+   hub. The paper itself is regenerated from the results JSON by
+   `experiments/make_paper.py`, so no number in it is typed by hand.
 
-## The honest one-paragraph summary
+## What this does and does not show
 
-CG-PED composes three efficiency techniques — a structure- and
-rarity-informed curriculum, LoRA, and knowledge distillation — for training
-small generative language models efficiently. It is evaluated experimentally,
-not only theoretically: four pilot studies (E1–E4) use a fully controllable
-synthetic benchmark to isolate each component's mechanism, and a fifth (E5)
-validates the same comparison on a genuine, public-domain text corpus with
-real generated-text samples. All reported numbers are real, reproducible
-measurements from executed runs. Curriculum ordering and distillation each
-produce genuine, modest gains; LoRA cuts trainable parameters by roughly
-63–65% at a real quality cost at this tiny, from-scratch model scale; and —
-most substantively — while the full pipeline's quality gap narrows to
-near-zero on the synthetic benchmark given extra training steps, it does
-**not** fully close on real text, a genuine and informative divergence that
-the paper reports honestly rather than omits. The paper explains the likely
-mechanistic reasons for this and lays out a concrete plan (Section 8 /
-Appendix A) for validating CG-PED at larger scale with real pretrained models
-and GPU infrastructure.
+It shows that at this scale — ~80K-parameter from-scratch models, a few
+thousand examples, a few hundred steps — the three techniques act
+independently, that LoRA's cost dominates and grows tenfold moving from
+synthetic to real data, that distillation's value tracks the teacher–student
+gap rather than the technique, and that the parameter saving is real and
+unaffected by any of it. Every number is a measurement from an executed run;
+none is projected or copied from another paper.
 
-## A note on scope
+It does not show how any of this behaves at deployment scale, and it does not
+evaluate LoRA under the conditions LoRA was designed for, since the student
+here is trained from random initialisation rather than adapted from a
+pretrained checkpoint. Both limitations are stated in the paper's Section 7
+rather than left for a reader to find.
 
-This methodology and its experiments are fully domain- and language-general
-— they are not tied to any specific language, alphabet, or population, in
-line with the assignment's own instruction that "the choice of model is left
-entirely to the participant" and that "the primary contribution should be the
-proposed methodology rather than the selected model."
+## A note on the result being negative
+
+A research contribution is judged by whether it is validated and cleanly
+reasoned, not by whether the method wins. A negative
+result that is measured cleanly, exceeds its own noise floor, and comes with a
+mechanism is more useful to the next person than a marginal positive one that
+a change of seed would erase — and this project has an example of the latter
+in its own history, which is why Section 8 exists.
